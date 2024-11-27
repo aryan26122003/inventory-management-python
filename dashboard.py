@@ -4,6 +4,7 @@ from tkcalendar import DateEntry
 import pymysql 
 from employees import employee_form
 from supplier import supplier_form
+from category import category_form
 #functions
 
 #employee section gui and function
@@ -48,7 +49,7 @@ supplierButton= Button(leftFrame,image=supplierImage,compound=LEFT,text='  Suppl
 supplierButton.pack(fill=X)
 
 categoryImage= PhotoImage(file='computer.png')
-categoryButton= Button(leftFrame,image=categoryImage,compound=LEFT,text='  Category',font=('times new roman',20,'bold'),anchor='w',padx=10)
+categoryButton= Button(leftFrame,image=categoryImage,compound=LEFT,text='  Category',font=('times new roman',20,'bold'),anchor='w',padx=10,command= lambda:category_form(window))
 categoryButton.pack(fill=X)
 
 productImage= PhotoImage(file='trolley.png')
