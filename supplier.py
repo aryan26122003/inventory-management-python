@@ -49,11 +49,11 @@ def add_supplier(invoice,name,contact,description,tree_view):
     try:
 
         cursor.execute('use prabhat_automobiles')
+        cursor.execute('CREATE TABLE IF NOT EXISTS supplier (invoice INT(20) PRIMARY KEY,name VARCHAR(100),contact VARCHAR(15),description VARCHAR(500))')
         cursor.execute('SELECT * FROM supplier WHERE invoice=%s',invoice)
         if cursor.fetchone():
-            messagebox.showerror("Error",'Id already exists')
+            messagebox.showerror("Error",'Invoice no. already exists')
             return
-        cursor.execute('CREATE TABLE IF NOT EXISTS supplier (invoice INT(20) PRIMARY KEY,name VARCHAR(100),contact VARCHAR(15),description VARCHAR(500))')
         cursor.execute('INSERT INTO supplier VALUES (%s,%s,%s,%s)',(invoice,name,contact,description.strip()))
         connection.commit()
         messagebox.showinfo('Info',' Supplier Data is instered')
