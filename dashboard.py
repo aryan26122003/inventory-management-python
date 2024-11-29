@@ -75,6 +75,7 @@ logoutButton.pack(fill=X)
 
 emp_frame =Frame(window,bg='#2c3e50',bd=3,relief=RIDGE)
 emp_frame.place(x=400,y=200,height=170,width=280)
+
 total_emp=PhotoImage(file='meeting-64.png')
 total_emp_label=Label(emp_frame,image=total_emp,bg='#2c3e50')
 total_emp_label.pack(pady=10)
