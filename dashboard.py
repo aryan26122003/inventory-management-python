@@ -5,6 +5,7 @@ import pymysql
 from employees import employee_form
 from supplier import supplier_form
 from category import category_form
+from product import product_form
 #functions
 
 #employee section gui and function
@@ -53,7 +54,7 @@ categoryButton= Button(leftFrame,image=categoryImage,compound=LEFT,text='  Categ
 categoryButton.pack(fill=X)
 
 productImage= PhotoImage(file='trolley.png')
-productButton= Button(leftFrame,image=productImage,compound=LEFT,text='  Product',font=('times new roman',20,'bold'),anchor='w',padx=10)
+productButton= Button(leftFrame,image=productImage,compound=LEFT,text='  Product',font=('times new roman',20,'bold'),anchor='w',padx=10,command=lambda:product_form(window))
 productButton.pack(fill=X)
 
 
