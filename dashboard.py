@@ -103,10 +103,6 @@ total_sup_text_count.pack()
 
 
 
-
-
-
-
 cat_frame =Frame(window,bg='#27ae60',bd=3,relief=RIDGE)
 cat_frame.place(x=400,y=450,height=170,width=280)
 total_cat=PhotoImage(file='meeting-64.png')

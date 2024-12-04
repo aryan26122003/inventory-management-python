@@ -4,6 +4,20 @@ from tkinter import messagebox
 import pymysql
 from employees import connect_database
 
+def select_data(event,category_combobox,supplier_combobox,name_entry,price_entry,quantity_entry,status_combobox,tree_view):
+    index=tree_view.selection()
+    content=tree_view.item(index)
+    actual_content=content['values']
+    name_entry.delete(0,END)
+    price_entry.delete(0,END)
+    quantity_entry.delete(0,END)
+    category_combobox.set(actual_content[1])
+    supplier_combobox.set(actual_content[2])
+    name_entry.insert(0,actual_content[3])
+    price_entry.insert(0,actual_content[4])
+    quantity_entry.insert(0,actual_content[5])
+    status_combobox.set(actual_content[6])
+
 def treeview_data(tree_view):
     cursor,connection=connect_database()
     if not cursor or not connection:
@@ -51,7 +65,7 @@ def add(category, supplier, name, price, quantity, status, tree_view):
         messagebox.showerror('Error', 'Please add category')
     elif supplier == "Empty":
         messagebox.showerror('Error', 'Please add supplier')
-    elif category == "" or supplier == "" or name == "" or price == "" or quantity == "" or status == "":
+    elif category == "Select" or supplier =="Select" or name =="" or price =="" or quantity =="" or status == "Selct Status":
         messagebox.showerror('Error', 'Please fill all fields')
     else:
         cursor, connection = connect_database()
@@ -60,6 +74,11 @@ def add(category, supplier, name, price, quantity, status, tree_view):
         try:
             cursor.execute('USE prabhat_automobiles')
             cursor.execute('CREATE TABLE IF NOT EXISTS product (id INT AUTO_INCREMENT PRIMARY KEY, category VARCHAR(100),supplier VARCHAR(100), name VARCHAR(100), price DECIMAL(10,2), quantity INT(20), status VARCHAR(20))')
+            cursor.execute('SELECT * from product WHERE category=%s AND supplier=%s AND name=%s',(category,supplier,name))
+            existing_product=cursor.fetchone()
+            if existing_product:
+                messagebox.showerror('Error', 'Product already exists')
+                return
             cursor.execute('INSERT INTO product (category, supplier, name, price, quantity, status) VALUES (%s, %s, %s, %s, %s, %s)',(category, supplier, name, price, quantity, status))
             connection.commit()
             messagebox.showinfo('Info', 'New product is added')
@@ -69,6 +88,60 @@ def add(category, supplier, name, price, quantity, status, tree_view):
         finally:
             cursor.close()
             connection.close()
+
+def update(category, supplier, name, price, quantity, status, tree_view):
+    # Get the selected item
+    index = tree_view.selection()
+    if not index:
+        messagebox.showerror('Error', 'Please select a product to update')
+        return
+    
+    dict = tree_view.item(index)
+    content = dict['values']
+    id = content[0]
+
+    cursor, connection = connect_database()
+    if not cursor or not connection:
+        return
+
+    try:
+        cursor.execute('USE prabhat_automobiles')
+
+        # Fetch current product data
+        cursor.execute('SELECT * FROM product WHERE id=%s', (id,))
+        current_data = cursor.fetchone()
+
+        if current_data is None:
+            messagebox.showerror('Error', 'No matching product found for the given ID')
+            return
+
+        # Compare current and new data
+        current_data = list(current_data[1:])  # Exclude ID
+        current_data[3] = str(current_data[3])  # Convert price to string for comparison
+        new_data = [category, supplier, name, price, int(quantity), status]
+
+        if current_data == new_data:
+            messagebox.showinfo('Info', 'No changes detected')
+            return
+
+        # Update the product in the database
+        cursor.execute(
+            'UPDATE product SET category=%s, supplier=%s, name=%s, price=%s, quantity=%s, status=%s WHERE id=%s',
+            (category, supplier, name, price, quantity, status, id)
+        )
+        connection.commit()
+        messagebox.showinfo('Info', 'Product updated successfully')
+
+        # Refresh the tree view
+        treeview_data(tree_view)
+
+    except Exception as e:
+        messagebox.showerror('Error', f'Error due to {e}')
+    finally:
+        cursor.close()
+        connection.close()
+
+
     
 
 
@@ -140,7 +213,7 @@ def product_form(window):
     add_button.grid(row=0,column=0,padx=10)
     
 
-    update_button = Button(button_frame,text='Update',font=('times new roman',14),width=8, fg='white',bg='#0f4d7d')
+    update_button = Button(button_frame,text='Update',font=('times new roman',14),width=8, fg='white',bg='#0f4d7d',command=lambda:update(category_combobox.get(),supplier_combobox.get(),name_entry.get(),price_entry.get(),quantity_entry.get(),status_combobox.get(),tree_view))
     update_button.grid(row=0,column=1,padx=10)
 
     delete_button = Button(button_frame,text='Delete',font=('times new roman',14),width=8, fg='white',bg='#0f4d7d')
@@ -179,14 +252,15 @@ def product_form(window):
     treeview_scroll_x.pack(side=BOTTOM, fill=X)
 
     # Treeview with Scrollbars
-    tree_view = ttk.Treeview(treeview_frame, columns=("Category","Supplier", "Name", "Price","Quantity",'Status'), show="headings",
+    tree_view = ttk.Treeview(treeview_frame, columns=("id","category","supplier", "name", "price","quantity",'status'), show="headings",
                              yscrollcommand=treeview_scroll_y.set, xscrollcommand=treeview_scroll_x.set)
-    tree_view.heading("Category", text="Category")
-    tree_view.heading("Supplier", text="Supplier")
-    tree_view.heading("Name", text="Name")
-    tree_view.heading("Price", text="Price")
-    tree_view.heading("Quantity", text="Quantity")
-    tree_view.heading("Status", text="Status")
+    tree_view.heading('id',text='Id')
+    tree_view.heading("category", text="Category")
+    tree_view.heading("supplier", text="Supplier")
+    tree_view.heading("name", text="Name")
+    tree_view.heading("price", text="Price")
+    tree_view.heading("quantity", text="Quantity")
+    tree_view.heading("status", text="Status")
 
     # Configure Scrollbars
     treeview_scroll_y.config(command=tree_view.yview)
@@ -195,6 +269,8 @@ def product_form(window):
     tree_view.pack(fill=BOTH, expand=True)
 
     fetch_supplier_category(category_combobox,supplier_combobox)
+    treeview_data(tree_view)
+    tree_view.bind('<ButtonRelease-1>',lambda event :select_data(event,category_combobox,supplier_combobox,name_entry,price_entry,quantity_entry,status_combobox,tree_view))
 
 
 
