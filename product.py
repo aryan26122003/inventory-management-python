@@ -142,6 +142,66 @@ def update(category, supplier, name, price, quantity, status, tree_view):
         connection.close()
 
 
+def clear_fields(category_combobox,supplier_combobox,name_entry,price_entry,quantity_entry,status_combobox, tree_view, check=False):
+    # Clear input fields
+    category_combobox.set('Select')
+    supplier_combobox.set('Select')
+    name_entry.delete(0, END)
+    price_entry.delete(0, END)
+    quantity_entry.delete(0, END)
+    status_combobox.set('Select Status')
+    
+
+    # Deselect items in TreeView if 'check' is True
+    if check:
+        selected_items = tree_view.selection()
+        for item in selected_items:
+            tree_view.selection_remove(item)
+
+
+
+def delete(tree_view, category_combobox, supplier_combobox, name_entry, price_entry, quantity_entry, status_combobox):
+    # Ensure at least one item is selected
+    selected = tree_view.selection()
+    if not selected:
+        messagebox.showerror('Error', 'No row is selected')
+        return
+
+    # Confirm deletion
+    result = messagebox.askyesno('Confirm', 'Do you really want to delete the selected record?')
+    if not result:
+        return
+
+    # Get the selected item's ID
+    item = tree_view.item(selected[0])
+    values = item.get('values')
+    if not values or len(values) == 0:
+        messagebox.showerror('Error', 'No valid data selected for deletion')
+        return
+
+    # Assuming the first column (values[0]) contains the ID
+    product_id = values[0]
+
+    # Delete the record from the database
+    cursor, connection = connect_database()
+    if not cursor or not connection:
+        return
+    try:
+        cursor.execute('USE prabhat_automobiles')
+        cursor.execute('DELETE FROM product WHERE id=%s', (product_id,))
+        connection.commit()
+
+        # Refresh UI
+        clear_fields(category_combobox, supplier_combobox, name_entry, price_entry, quantity_entry, status_combobox)
+        treeview_data(tree_view)  # Refresh the tree view
+        messagebox.showinfo('Success', 'Product record deleted successfully')
+    except Exception as e:
+        messagebox.showerror('Error', f'Error due to {e}')
+    finally:
+        cursor.close()
+        connection.close()
+
+
     
 
 
@@ -216,10 +276,10 @@ def product_form(window):
     update_button = Button(button_frame,text='Update',font=('times new roman',14),width=8, fg='white',bg='#0f4d7d',command=lambda:update(category_combobox.get(),supplier_combobox.get(),name_entry.get(),price_entry.get(),quantity_entry.get(),status_combobox.get(),tree_view))
     update_button.grid(row=0,column=1,padx=10)
 
-    delete_button = Button(button_frame,text='Delete',font=('times new roman',14),width=8, fg='white',bg='#0f4d7d')
+    delete_button = Button(button_frame,text='Delete',font=('times new roman',14),width=8, fg='white',bg='#0f4d7d',command=lambda:delete(category_combobox,supplier_combobox,name_entry,price_entry,quantity_entry,status_combobox,tree_view))
     delete_button.grid(row=0,column=2,padx=10)
 
-    clear_button = Button(button_frame,text='Clear',font=('times new roman',14),width=8, fg='white',bg='#0f4d7d')
+    clear_button = Button(button_frame,text='Clear',font=('times new roman',14),width=8, fg='white',bg='#0f4d7d',command=lambda:clear_fields(category_combobox,supplier_combobox,name_entry,price_entry,quantity_entry,status_combobox,tree_view,TRUE))
     clear_button.grid(row=0,column=3,padx=10)
 
 
