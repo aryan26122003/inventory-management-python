@@ -2,13 +2,43 @@ from tkinter import *
 from tkinter import ttk
 from tkcalendar import DateEntry
 import pymysql 
-from employees import employee_form
+from employees import employee_form,connect_database
 from supplier import supplier_form
 from category import category_form
 from product import product_form
+from tkinter import messagebox
+import time
+
 #functions
 
 #employee section gui and function
+def update():
+    cursor,connection=connect_database()
+    if not cursor or not connection:
+        return
+    cursor.execute('use prabhat_automobiles')
+    cursor.execute("SELECT * FROM employees_data")
+    records=cursor.fetchall()
+    total_emp_text_count.config(text=len(records))
+
+    cursor.execute("SELECT * FROM supplier")
+    record=cursor.fetchall()
+    total_sup_text_count.config(text=len(record))
+
+    cursor.execute("SELECT * FROM category")
+    recordd=cursor.fetchall()
+    total_cat_text_count.config(text=len(recordd))
+
+    cursor.execute("SELECT * FROM product")
+    recordds=cursor.fetchall()
+    total_prod_text_count.config(text=len(recordds))
+
+
+    current_time=time.strftime('%I:%M:%S %p')
+    current_date=time.strftime('%d-%B-%Y  %A')
+    subtitleLabel.config(text=f'Welcome ADMIN \t\t Date: {current_date}\t\t TIME: {current_time}')
+    subtitleLabel.after(1000,update)
+
 
     
 #gui
@@ -142,4 +172,6 @@ total_sales_text_label.pack()
 total_sales_text_count=Label(sales_frame,text='0',font=('times new roman',30,'bold'),bg='#e74c3c',fg='white')
 total_sales_text_count.pack()
 
+
+update()
 window.mainloop()
